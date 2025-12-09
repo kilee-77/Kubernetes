@@ -1,0 +1,6 @@
+해당 구성 스크립트는 2025년 12월 09일 생성된 스크립트로 기존 넷앱시뮬레이션을 이용하여 쉽게 구축하는데 의미가 있음.
+해당 구성정보는 아래와 같음.
+Lab Name : Easier Data Management with ONTAP Tools for VMware vSphere 10.2 v4.0
+Lab Info : vcenter 8.0.3, ESXi 8.0.2, Netapp ONTAP 9.15.1
+         : Rocky Linux 9.7 (Blue Onyx)
+         : K8S v1.31.14
