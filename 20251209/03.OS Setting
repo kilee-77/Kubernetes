@@ -1,0 +1,41 @@
+#/dev/mapper/rl_linux1-root 용량 변경
+sudo yum install cloud-utils-growpart
+growpart /dev/sda 3
+lvextend -L +25g /dev/mapper/rl_linux1-root
+xfs_growfs /
+
+#k8s 초기세팅값 (테스트를 위한)
+#dnf update
+dnf update -y
+
+#timezone setup
+timedatectl set-timezone Asia/Seoul
+
+#firewall disable
+systemctl disable --now firewalld
+setenforce 0
+
+#swap 0, selinux off
+swapoff -a
+sed -i '/ swap / s/^#//' /etc/fstab
+sed -i 's/^SELINUX=enforcing$/SELINUX=disabled/' /etc/selinux/config
+free -h
+getenforce
+
+#IPtables
+tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.brige.bridge-nf-call-ip6tables = 1
+net.brige.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+#containerd kernel
+tee /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+
+sysctl --system
+
+#package install
+dnf install -y wget nfs-utils
