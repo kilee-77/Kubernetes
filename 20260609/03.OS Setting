@@ -25,8 +25,7 @@ setenforce 0
 
 #swap 0, selinux off
 swapoff -a
-sed -i '/ swap / s/^#//' /etc/fstab
-sed -i 's/^SELINUX=enforcing$/SELINUX=disabled/' /etc/selinux/config
+sed -i '/swap/d' /etc/fstab
 free -h
 getenforce
 
