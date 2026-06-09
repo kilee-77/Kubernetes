@@ -1,0 +1,12 @@
+#host name
+hostnamectl set-hostname master && exec bash
+
+#alias 설정
+echo "alias k='kubectl'" >> /root/.bashrc
+
+#IP Change
+nmcli connection modify ens33 ipv4.addresses 192.168.0.200/24
+nmcli connection modify ens33 ipv4.gateway 192.168.0.1
+nmcli connection modify ens33 ipv4.dns 8.8.8.8
+nmcli connection modify ens33 ipv4.method manual
+nmcli connection down ens33 && nmcli connection up ens33
