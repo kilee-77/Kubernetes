@@ -1,0 +1,7 @@
+#DataStore 추가 데이터스토어 이름은
+cluster02
+
+#vm resourse
+CPU : 4
+Memory : 6
+Hard disk1 : 50GB
