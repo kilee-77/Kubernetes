@@ -1,0 +1,9 @@
+#Netapp setting (cluster2)
+#netapp cluster2 vmware datestore setting
+
+aggr rename -aggregate cluster2_01_SSD_1 -newname n1_aggr1
+aggr rename -aggregate cluster2_02_SSD_1 -newname n2_aggr1
+vol create -volume vol00 -state online -aggregate n1_aggr1 -size 2200g -policy default
+lun create -path /vol/vol00/lun00 -size 2000g -ostype vmware -space-reserve enabled -space-allocation enabled
+igroup create -igroup vmware1 -protocol mixed -ostype vmware -initiator iqn.1998-01.com.vmware:esx1:619845978:65,iqn.1998-01.com.vmware:esx2.demo.netapp.com:619845978:65,iqn.1998-01.com.vmware:esx3.demo.netapp.com:1549765610:65
+lun map -path /vol/vol00/lun00 -igroup vmware1 -lun-id 0
