@@ -1,48 +1,49 @@
-#utils install
-dnf install dnf-utils net-tools bind-utils iproute-tc wget curl* dnf-plugins-core device-mapper-persistent-data lvm2
-dnf install -y conntrack-tools
-
-#Containerd install
+[All-Node] #공통
 dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-dnf update -y && dnf install -y containerd.io
+dnf install -y containerd.io
 
-#Containerd modify
 mkdir -p /etc/containerd
-containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
-sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
-systemctl restart containerd
-systemctl enable --now containerd
+containerd config default > /etc/containerd/config.toml
 
-#k8s repo 1.36 ver install
-cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+vi /etc/containerd/config.toml 
+SystemdCgroup = true #/Systmed 로 검색하여 false 를 true 로 변경
+
+systemctl enable containerd --now
+systemctl restart containerd
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://pkgs.k8s.io/core:/stable:/v1.36/rpm/
 enabled=1
 gpgcheck=1
 gpgkey=https://pkgs.k8s.io/core:/stable:/v1.36/rpm/repodata/repomd.xml.key
-exclude=kubelet kubeadm kubectl
 EOF
 
-dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-systemctl enable --now kubelet
+dnf install -y kubelet kubeadm kubectl
 
-#k8s init by yaml (master only)
-kubeadm config print init-defaults > ~/kubeadm-init.yaml
+systemctl enable kubelet
 
-sed -i 's/advertiseAddress: 1.2.3.4/advertiseAddress: 192.168.0.200/' ~/kubeadm-init.yaml
-sed -i 's/name: node/name: master/' ~/kubeadm-init.yaml
-sed -i 's/serviceSubnet: 10.96.0.0\/12/serviceSubnet: 10.10.10.0\/16/' ~/kubeadm-init.yaml
-#해당 부분이 실행 안될경우 vi kubeadm-init.yaml 12줄 : 192.168.0.200 콤마뒤에 띄어쓰기가 되어 있는지 확인할것
+[Master-Node] #마스터노드
+kubeadm init \
+--pod-network-cidr=10.244.0.0/16 
 
-#k8s init (master only)
-kubeadm init --config=kubeadm-init.yaml
 
 mkdir -p $HOME/.kube
+
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
 chown $(id -u):$(id -g) $HOME/.kube/config
 
-#CNI setting
-kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.0/manifests/calico.yaml
+kubectl get nodes
 
-kubeadm token create --print-join-command
+curl -O https://raw.githubusercontent.com/projectcalico/calico/v3.29.0/manifests/calico.yaml
+# 192.168.0.0/16 → 10.244.0.0/16 으로 변경
+sed -i 's|192.168.0.0/16|10.244.0.0/16|g' calico.yaml
+
+# 변경 확인
+grep "CALICO_IPV4POOL_CIDR" -A1 calico.yaml
+
+# CNI(Calico)
+kubectl create -f calico.yaml
+
