@@ -47,3 +47,5 @@ grep "CALICO_IPV4POOL_CIDR" -A1 calico.yaml
 # CNI(Calico)
 kubectl create -f calico.yaml
 
+#token 재생성
+kubeadm token create --print-join-command
